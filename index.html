@@ -3,10 +3,29 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>✨ School-Planer v3.7</title>
+<title>✨ School-Planer v4.0</title>
 <style>
-:root{--primary:#7C3AED;--primary-light:#EDE9FE;--accent:#10B981;--accent-light:#D1FAE5;--danger:#EF4444;--danger-light:#FEE2E2;--warning:#F59E0B;--warning-light:#FEF3C7;--bg:#F8F7FF;--surface:#FFFFFF;--surface2:#F3F4F6;--text:#1F2937;--text-muted:#6B7280;--border:#E5E7EB;--radius:14px;--radius-sm:8px;--shadow:0 2px 12px rgba(0,0,0,0.08);--shadow-lg:0 8px 32px rgba(0,0,0,0.12);--font:'Segoe UI',system-ui,-apple-system,sans-serif;--bottom-bar-h:64px;}
+:root{--primary:#7C3AED;--primary-light:#EDE9FE;--accent:#10B981;--accent-light:#D1FAE5;--danger:#EF4444;--danger-light:#FEE2E2;--warning:#F59E0B;--warning-light:#FEF3C7;--bg:#F8F7FF;--surface:#FFFFFF;--surface2:#F3F4F6;--text:#1F2937;--text-muted:#6B7280;--border:#E5E7EB;--radius:14px;--radius-sm:8px;--shadow:0 2px 12px rgba(0,0,0,0.08);--shadow-lg:0 8px 32px rgba(0,0,0,0.12);--font:'Segoe UI',system-ui,-apple-system,sans-serif;--bottom-bar-h:64px;--transition:0.22s ease;}
+/* Dark mode */
+[data-theme="dark"]{--primary:#A78BFA;--primary-light:#2D1B69;--accent:#34D399;--accent-light:#064E3B;--danger:#F87171;--danger-light:#450A0A;--warning:#FCD34D;--warning-light:#451A03;--bg:#0F0F13;--surface:#1A1A24;--surface2:#232330;--text:#F1F0FF;--text-muted:#9CA3AF;--border:#2E2E40;--shadow:0 2px 12px rgba(0,0,0,0.4);--shadow-lg:0 8px 32px rgba(0,0,0,0.6);}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--primary:#A78BFA;--primary-light:#2D1B69;--accent:#34D399;--accent-light:#064E3B;--danger:#F87171;--danger-light:#450A0A;--warning:#FCD34D;--warning-light:#451A03;--bg:#0F0F13;--surface:#1A1A24;--surface2:#232330;--text:#F1F0FF;--text-muted:#9CA3AF;--border:#2E2E40;--shadow:0 2px 12px rgba(0,0,0,0.4);--shadow-lg:0 8px 32px rgba(0,0,0,0.6);}}
 *{box-sizing:border-box;margin:0;padding:0;}
+/* ── ANIMATIONS ── */
+.page{transition:opacity var(--transition),transform var(--transition);}
+.page.page-enter{opacity:0;transform:translateY(12px);}
+.card,.card-collapsible{transition:box-shadow var(--transition),border-color var(--transition);}
+.hw-check{transition:background 0.18s,border-color 0.18s,transform 0.15s;}
+.hw-check.checking{transform:scale(1.25);}
+.hw-item{transition:opacity 0.3s,transform 0.3s;}
+.hw-item.hw-done-anim{opacity:0.4;transform:translateX(8px);}
+.btn{transition:opacity 0.15s,transform 0.12s,background 0.15s;}
+.card-body{transition:none;}
+.bnav-btn .bicon{transition:transform 0.18s;}
+/* Pomodoro ring */
+@keyframes pomodoroRing{0%{box-shadow:0 0 0 0 rgba(124,58,237,0.5);}70%{box-shadow:0 0 0 12px rgba(124,58,237,0);}100%{box-shadow:0 0 0 0 rgba(124,58,237,0);}}
+.pomodoro-pulse{animation:pomodoroRing 1s infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
 html{-webkit-text-size-adjust:100%;}
 body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;overscroll-behavior-y:none;}
 
@@ -441,10 +460,12 @@ details ul{padding-left:16px;margin-top:4px;}
 <nav class="nav">
   <div class="nav-inner">
     <div class="nav-logo">✨ School-Planer</div>
+    <button id="darkModeToggle" onclick="cycleDarkMode()" style="background:none;border:none;cursor:pointer;font-size:1.3rem;padding:10px 8px;" title="Dark Mode">🌓</button>
     <button class="nav-btn active" onclick="showPage('home')" id="nav-home"><span class="icon">🏠</span><span>Heute</span></button>
     <button class="nav-btn" onclick="showPage('stundenplan')" id="nav-stundenplan"><span class="icon">📅</span><span>Stundenplan</span></button>
     <button class="nav-btn" onclick="showPage('hausaufgaben')" id="nav-hausaufgaben"><span class="icon">📚</span><span>Hausaufgaben</span></button>
     <button class="nav-btn" onclick="showPage('oev')" id="nav-oev"><span class="icon">🚌</span><span>ÖV</span></button>
+    <button class="nav-btn" onclick="showPage('noten')" id="nav-noten"><span class="icon">🎯</span><span>Noten</span></button>
     <button class="nav-btn" onclick="showPage('einstellungen')" id="nav-einstellungen"><span class="icon">⚙️</span><span>Einstellungen</span></button>
   </div>
 </nav>
@@ -456,9 +477,31 @@ details ul{padding-left:16px;margin-top:4px;}
     <button class="bnav-btn" onclick="showPage('stundenplan')" id="bnav-stundenplan"><span class="bicon">📅</span><span>Stunden</span></button>
     <button class="bnav-btn" onclick="showPage('hausaufgaben')" id="bnav-hausaufgaben"><span class="bicon">📚</span><span>Aufgaben</span></button>
     <button class="bnav-btn" onclick="showPage('oev')" id="bnav-oev"><span class="bicon">🚌</span><span>ÖV</span></button>
+    <button class="bnav-btn" onclick="showPage('noten')" id="bnav-noten"><span class="bicon">🎯</span><span>Noten</span></button>
     <button class="bnav-btn" onclick="showPage('einstellungen')" id="bnav-einstellungen"><span class="bicon">⚙️</span><span>Mehr</span></button>
   </div>
 </nav>
+
+
+<!-- POMODORO MODAL -->
+<div class="modal-overlay" id="pomoModal">
+  <div class="pomo-modal">
+    <div style="font-weight:800;font-size:1rem;margin-bottom:4px;">⏱️ Pomodoro</div>
+    <div id="pomoHwTitle" style="font-size:0.82rem;color:var(--text-muted);margin-bottom:12px;"></div>
+    <div id="pomoPhaseLabel" style="font-size:0.78rem;font-weight:700;color:var(--primary);margin-bottom:6px;">🎯 Lernzeit</div>
+    <div class="pomo-ring">
+      <svg style="position:absolute;inset:-8px;width:calc(100% + 16px);height:calc(100% + 16px);" viewBox="0 0 140 140">
+        <circle cx="70" cy="70" r="62" fill="none" stroke="var(--primary-light)" stroke-width="8"/>
+        <circle id="pomoRingFill" cx="70" cy="70" r="62" fill="none" stroke="var(--primary)" stroke-width="8" stroke-linecap="round" transform="rotate(-90 70 70)" stroke-dasharray="389.6" stroke-dashoffset="0" style="transition:stroke-dashoffset 1s linear;"/>
+      </svg>
+      <div id="pomoTimeDisplay" class="pomo-time">25:00</div>
+      <div class="pomo-label">Minuten</div>
+    </div>
+    <div class="btn-row" style="justify-content:center;margin-top:16px;">
+      <button class="btn btn-danger" onclick="stopPomodoro()">⏹ Stopp</button>
+    </div>
+  </div>
+</div>
 
 <!-- CONFIRM DELETE MODAL – Step 1 -->
 <div class="modal-overlay" id="deleteModal1">
@@ -470,6 +513,27 @@ details ul{padding-left:16px;margin-top:4px;}
     <div class="confirm-btns">
       <button class="btn btn-outline btn-sm" onclick="document.getElementById('deleteModal1').classList.remove('open')">Abbrechen</button>
       <button class="btn btn-danger btn-sm" onclick="openDeleteConfirm2()">Ja, weiter →</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- POMODORO MODAL -->
+<div class="modal-overlay" id="pomoModal">
+  <div class="pomo-modal">
+    <div style="font-weight:800;font-size:1rem;margin-bottom:4px;">⏱️ Pomodoro</div>
+    <div id="pomoHwTitle" style="font-size:0.82rem;color:var(--text-muted);margin-bottom:12px;"></div>
+    <div id="pomoPhaseLabel" style="font-size:0.78rem;font-weight:700;color:var(--primary);margin-bottom:6px;">🎯 Lernzeit</div>
+    <div class="pomo-ring">
+      <svg style="position:absolute;inset:-8px;width:calc(100% + 16px);height:calc(100% + 16px);" viewBox="0 0 140 140">
+        <circle cx="70" cy="70" r="62" fill="none" stroke="var(--primary-light)" stroke-width="8"/>
+        <circle id="pomoRingFill" cx="70" cy="70" r="62" fill="none" stroke="var(--primary)" stroke-width="8" stroke-linecap="round" transform="rotate(-90 70 70)" stroke-dasharray="389.6" stroke-dashoffset="0" style="transition:stroke-dashoffset 1s linear;"/>
+      </svg>
+      <div id="pomoTimeDisplay" class="pomo-time">25:00</div>
+      <div class="pomo-label">Minuten</div>
+    </div>
+    <div class="btn-row" style="justify-content:center;margin-top:16px;">
+      <button class="btn btn-danger" onclick="stopPomodoro()">⏹ Stopp</button>
     </div>
   </div>
 </div>
@@ -568,9 +632,98 @@ details ul{padding-left:16px;margin-top:4px;}
   </div>
 </div>
 
+
+<!-- PAGE: NOTEN -->
+<div class="page" id="page-noten">
+  <div class="section-header"><h2>🎯 Noten & Lernziele</h2></div>
+  <div id="gradesContent"></div>
+</div>
+
 <!-- PAGE: EINSTELLUNGEN -->
 <div class="page" id="page-einstellungen">
   <div class="section-header"><h2 id="settingsTitle">⚙️ Einstellungen</h2></div>
+
+  <!-- Feature Toggles -->
+  <div class="card-collapsible" id="sec-features">
+    <button class="card-toggle" onclick="toggleSettingsCard('sec-features')">
+      <span class="card-toggle-icon">🧩</span>
+      <span class="card-toggle-label">Module ein/ausschalten</span>
+      <span class="card-toggle-chevron">▼</span>
+    </button>
+    <div class="card-body">
+      <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:14px;">Aktiviere oder deaktiviere einzelne Funktionen der App.</p>
+
+      <!-- Dark Mode -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);">
+        <div><div style="font-weight:700;font-size:0.9rem;">🌙 Dark Mode</div><div style="font-size:0.75rem;color:var(--text-muted);">Automatisch / Hell / Dunkel</div></div>
+        <button onclick="cycleDarkMode()" id="darkModeToggleSetting" style="background:var(--primary-light);color:var(--primary);border:none;border-radius:99px;padding:6px 16px;font-weight:700;cursor:pointer;font-size:0.9rem;">🌓</button>
+      </div>
+
+      <!-- Animations -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);cursor:pointer;" onclick="toggleFeature('animations')">
+        <div><div style="font-weight:700;font-size:0.9rem;">✨ Animationen</div><div style="font-size:0.75rem;color:var(--text-muted);">Seitenwechsel & Übergänge</div></div>
+        <div id="featToggleAnimations" class="hs-toggle on" style="pointer-events:none;"></div>
+      </div>
+
+      <!-- Grades -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);cursor:pointer;" onclick="toggleFeature('grades')">
+        <div><div style="font-weight:700;font-size:0.9rem;">🎯 Noten & Lernziele</div><div style="font-size:0.75rem;color:var(--text-muted);">Noten-Seite im Menü anzeigen</div></div>
+        <div id="featToggleGrades" class="hs-toggle on" style="pointer-events:none;"></div>
+      </div>
+
+      <!-- Calendar Export -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);cursor:pointer;" onclick="toggleFeature('calExport')">
+        <div><div style="font-weight:700;font-size:0.9rem;">🗓️ Kalender-Export</div><div style="font-size:0.75rem;color:var(--text-muted);">.ics Export in Einstellungen anzeigen</div></div>
+        <div id="featToggleCalExport" class="hs-toggle on" style="pointer-events:none;"></div>
+      </div>
+
+      <!-- Pomodoro -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);cursor:pointer;" onclick="toggleFeature('pomodoro')">
+        <div><div style="font-weight:700;font-size:0.9rem;">⏱️ Pomodoro-Timer</div><div style="font-size:0.75rem;color:var(--text-muted);">Lern-Timer bei Hausaufgaben</div></div>
+        <div id="featTogglePomodoro" class="hs-toggle on" style="pointer-events:none;"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Notifications -->
+  <div class="card-collapsible" id="sec-notif">
+    <button class="card-toggle" onclick="toggleSettingsCard('sec-notif')">
+      <span class="card-toggle-icon">🔔</span>
+      <span class="card-toggle-label">Benachrichtigungen</span>
+      <span class="card-toggle-chevron">▼</span>
+    </button>
+    <div class="card-body">
+      <div id="notifSettingsContainer"></div>
+    </div>
+  </div>
+
+  <!-- Subject Icons -->
+  <div class="card-collapsible" id="sec-icons">
+    <button class="card-toggle" onclick="toggleSettingsCard('sec-icons')">
+      <span class="card-toggle-icon">🎨</span>
+      <span class="card-toggle-label">Fach-Icons</span>
+      <span class="card-toggle-chevron">▼</span>
+    </button>
+    <div class="card-body">
+      <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:12px;">Wähle ein Emoji-Icon für jedes Fach.</p>
+      <div id="subjectIconsList"></div>
+    </div>
+  </div>
+
+  <!-- Calendar Export Button -->
+  <div class="card-collapsible" id="sec-calexport">
+    <button class="card-toggle" onclick="toggleSettingsCard('sec-calexport')">
+      <span class="card-toggle-icon">🗓️</span>
+      <span class="card-toggle-label">Kalender-Export</span>
+      <span class="card-toggle-chevron">▼</span>
+    </button>
+    <div class="card-body">
+      <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:12px;">Exportiere alle Hausaufgaben und Prüfungen als .ics Datei — kompatibel mit Google Calendar, Apple Calendar und Outlook.</p>
+      <button class="btn btn-primary" onclick="exportCalendar()">📅 Als .ics exportieren</button>
+    </div>
+  </div>
+
 
   <!-- Sprache -->
   <div class="card-collapsible open" id="sec-lang">
@@ -904,7 +1057,7 @@ details ul{padding-left:16px;margin-top:4px;}
 
   <!-- Version -->
   <div style="text-align:center;padding:16px 0 8px;color:var(--text-muted);font-size:0.75rem;">
-    ✨ School-Planer <strong style="color:var(--primary);">v3.7</strong> · Made with ❤️
+    ✨ School-Planer <strong style="color:var(--primary);">v4.0</strong> · Made with ❤️
   </div>
 </div>
 
@@ -1004,6 +1157,17 @@ let state = {
   gdriveToken:'', gdriveUser:'', gdriveFileId:'', lastGdriveBackup:'',
   // homeSections: array of {id, on}
   homeSections: ALL_HOME_SECTIONS.map(s=>({id:s.id, on:s.defaultOn})),
+  // Feature toggles
+  features:{darkMode:'system',animations:true,notifications:true,grades:true,calExport:true,pomodoro:true},
+  // Notifications config
+  notifConfig:{homeworkEvening:true,homeworkMorning:true,packReminder:true,eveningTime:'19:00',morningTime:'07:30'},
+  // Grades
+  grades:{}, // {subjectId: [{value, date, label, weight}]}
+  gradeGoals:{}, // {subjectId: targetGrade}
+  // Subject icons
+  subjectIcons:{math:'➕',german:'📖',english:'🌍',bio:'🌿',sport:'⚽'},
+  // Pomodoro
+  pomodoroLog:{}, // {hwId: count}
 };
 
 const DAYS=['Mo','Di','Mi','Do','Fr'];
@@ -1524,7 +1688,12 @@ function showPage(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   document.querySelectorAll('.bnav-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById('page-'+id).classList.add('active');
+  const pg=document.getElementById('page-'+id);
+  pg.classList.add('active');
+  if(state.features?.animations!==false){
+    pg.classList.add('page-enter');
+    requestAnimationFrame(()=>requestAnimationFrame(()=>pg.classList.remove('page-enter')));
+  }
   document.getElementById('nav-'+id).classList.add('active');
   const bn=document.getElementById('bnav-'+id);if(bn)bn.classList.add('active');
   closeAllCals();
@@ -1533,11 +1702,38 @@ function showPage(id){
   if(id==='hausaufgaben') renderHausaufgaben();
   if(id==='oev'){renderOev();loadOev();}
   if(id==='einstellungen') renderEinstellungen();
+  if(id==='noten') renderGradesPage();
+  // Hide/show noten nav based on feature toggle
+  const notenBtns=['nav-noten','bnav-noten'].map(i=>document.getElementById(i)).filter(Boolean);
+  notenBtns.forEach(b=>b.style.display=state.features?.grades!==false?'':'none');
 }
 
 // ══════════════════════════════════════════════
 // COLORS
 // ══════════════════════════════════════════════
+
+// ── DARK MODE ──
+function applyDarkMode(){
+  const mode = state.features?.darkMode || 'system';
+  const root = document.documentElement;
+  if(mode==='dark') root.setAttribute('data-theme','dark');
+  else if(mode==='light') root.setAttribute('data-theme','light');
+  else root.removeAttribute('data-theme'); // system
+  // Update toggle icon if on settings page
+  const btn = document.getElementById('darkModeToggle');
+  if(btn) btn.textContent = mode==='dark'?'🌙':mode==='light'?'☀️':'🌓';
+}
+function cycleDarkMode(){
+  const modes=['system','light','dark'];
+  const cur = state.features?.darkMode||'system';
+  const next = modes[(modes.indexOf(cur)+1)%3];
+  if(!state.features) state.features={};
+  state.features.darkMode=next;
+  applyDarkMode();
+  saveState();
+  toast({system:'🌓 System',light:'☀️ Hell',dark:'🌙 Dunkel'}[next]);
+}
+
 function applyColors(){
   const r=document.documentElement.style;
   r.setProperty('--primary',state.colors.primary);
@@ -1685,12 +1881,56 @@ function renderHomeSectionManager(){
 }
 function toggleHomeSection(i){
   state.homeSections[i].on=!state.homeSections[i].on;
+  // Feature toggle UI
+  const feats=state.features||{};
+  ['animations','grades','calExport','pomodoro'].forEach(k=>{
+    const el=document.getElementById('featToggle'+k.charAt(0).toUpperCase()+k.slice(1));
+    if(el) el.className='hs-toggle '+(feats[k]!==false?'on':'off');
+  });
+  const dmBtn=document.getElementById('darkModeToggleSetting');
+  const dmBtn2=document.getElementById('darkModeToggle');
+  const dmLabel={system:'🌓',light:'☀️',dark:'🌙'}[feats.darkMode||'system'];
+  if(dmBtn)dmBtn.textContent=dmLabel;
+  if(dmBtn2)dmBtn2.textContent=dmLabel;
+  // Notifications
+  const nc=document.getElementById('notifSettingsContainer');
+  if(nc) renderNotifSettings(nc);
+  // Subject icons
+  const sil=document.getElementById('subjectIconsList');
+  if(sil) sil.innerHTML=(state.subjects||[]).map(s=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);">
+      <span style="font-size:1.2rem;width:32px;text-align:center;cursor:pointer;" onclick="pickSubjectIcon('${s.id}')" title="Icon ändern">${state.subjectIcons?.[s.id]||'📖'}</span>
+      <span style="font-weight:600;color:${s.color}">${esc(s.name)}</span>
+      <button class="btn btn-outline btn-sm" onclick="pickSubjectIcon('${s.id}')">Ändern</button>
+    </div>`).join('');
   renderHomeSectionManager();
 }
 function moveHomeSection(i,dir){
   const j=i+dir;
   if(j<0||j>=state.homeSections.length) return;
   [state.homeSections[i],state.homeSections[j]]=[state.homeSections[j],state.homeSections[i]];
+  // Feature toggle UI
+  const feats=state.features||{};
+  ['animations','grades','calExport','pomodoro'].forEach(k=>{
+    const el=document.getElementById('featToggle'+k.charAt(0).toUpperCase()+k.slice(1));
+    if(el) el.className='hs-toggle '+(feats[k]!==false?'on':'off');
+  });
+  const dmBtn=document.getElementById('darkModeToggleSetting');
+  const dmBtn2=document.getElementById('darkModeToggle');
+  const dmLabel={system:'🌓',light:'☀️',dark:'🌙'}[feats.darkMode||'system'];
+  if(dmBtn)dmBtn.textContent=dmLabel;
+  if(dmBtn2)dmBtn2.textContent=dmLabel;
+  // Notifications
+  const nc=document.getElementById('notifSettingsContainer');
+  if(nc) renderNotifSettings(nc);
+  // Subject icons
+  const sil=document.getElementById('subjectIconsList');
+  if(sil) sil.innerHTML=(state.subjects||[]).map(s=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);">
+      <span style="font-size:1.2rem;width:32px;text-align:center;cursor:pointer;" onclick="pickSubjectIcon('${s.id}')" title="Icon ändern">${state.subjectIcons?.[s.id]||'📖'}</span>
+      <span style="font-weight:600;color:${s.color}">${esc(s.name)}</span>
+      <button class="btn btn-outline btn-sm" onclick="pickSubjectIcon('${s.id}')">Ändern</button>
+    </div>`).join('');
   renderHomeSectionManager();
 }
 function toggleSettingsCard(id){
@@ -2141,7 +2381,7 @@ function buildTimetableView(){
       const height=Math.max(22,bot-top);
       const hwCount=state.homework.filter(h=>h.subjectId===subj.id&&!h.done).length;
       html+=`<div class="tt-block ${hwCount>0?'has-hw':''}" style="position:absolute;top:${top}px;left:${colOffset(di)};width:${colW};height:${height}px;background:${subj.color}22;border-color:${subj.color};" onclick="openHwModal('${subj.id}')" title="${cell.room?'Zimmer: '+esc(cell.room)+' · ':''}Hausaufgabe hinzufügen">
-        <div class="tt-block-name" style="color:${subj.color}">${esc(subj.name)}</div>
+        <div class="tt-block-name" style="color:${subj.color}">${state.subjectIcons?.[subj.id]||''} ${esc(subj.name)}</div>
         <div class="tt-block-time" style="color:${subj.color}">${cell.from}&thinsp;–&thinsp;${cell.to}</div>
         ${cell.room?`<div class="tt-block-room" style="color:${subj.color}">🚪 ${esc(cell.room)}</div>`:''}
       </div>`;
@@ -2203,7 +2443,14 @@ function saveHw(){
   if(idx>=0){hw.done=state.homework[idx].done;state.homework[idx]=hw;}else state.homework.push(hw);
   saveState();closeHwModal();renderHausaufgaben();buildTimetableView();renderHome();toast('✅ Gespeichert!');
 }
-function toggleHwDone(id){const hw=state.homework.find(h=>h.id===id);if(hw){hw.done=!hw.done;saveState();}renderHausaufgaben();renderHome();buildTimetableView();updateStreak();}
+function toggleHwDone(id){
+  const hw=state.homework.find(h=>h.id===id);
+  if(!hw)return;
+  hw.done=!hw.done;
+  if(hw.done) state.streak=(state.streak||0)+1;
+  saveState();
+  renderHausaufgaben();renderHome();
+}
 function deleteHw(id){state.homework=state.homework.filter(h=>h.id!==id);saveState();renderHausaufgaben();renderHome();buildTimetableView();toast('🗑 Gelöscht');}
 
 function hwDueBadge(hw){
@@ -2226,10 +2473,11 @@ function hwItemHtml(hw){
     <div class="hw-check ${hw.done?'checked':''}" onclick="toggleHwDone('${hw.id}')">${hw.done?'✓':''}</div>
     <div class="hw-body">
       <div class="hw-title" style="${examTitle}">${icon} ${esc(hw.desc)}</div>
-      <div class="hw-meta">${subj?`<span class="subject-tag" style="background:${subj.color}22;color:${subj.color}">${esc(subj.name)}</span>`:''}Fällig: ${hw.due}</div>
+      <div class="hw-meta">${subj?`<span class="subject-tag" style="background:${subj.color}22;color:${subj.color}">${state.subjectIcons?.[subj.id]||''} ${esc(subj.name)}</span>`:''}Fällig: ${hw.due}</div>
     </div>
     ${hwDueBadge(hw)}
     <div class="hw-actions">
+      ${state.features?.pomodoro!==false?`<button class="pomo-btn" onclick="startPomodoro('${hw.id}')">⏱ ${state.pomodoroLog?.[hw.id]?'🍅'.repeat(Math.min(state.pomodoroLog[hw.id],4)):'Start'}</button>`:''}
       <button class="btn btn-outline btn-sm" onclick="openHwEdit('${hw.id}')">✏️</button>
       <button class="btn-del" onclick="deleteHw('${hw.id}')">🗑</button>
     </div>
@@ -2516,6 +2764,28 @@ function renderEinstellungen(){
   if(hwt) hwt.className='hs-toggle '+(state.hideWalking?'on':'off');
   document.getElementById('lessonsPerDay').value=state.lessonsPerDay||8;
 
+  // Feature toggle UI
+  const feats=state.features||{};
+  ['animations','grades','calExport','pomodoro'].forEach(k=>{
+    const el=document.getElementById('featToggle'+k.charAt(0).toUpperCase()+k.slice(1));
+    if(el) el.className='hs-toggle '+(feats[k]!==false?'on':'off');
+  });
+  const dmBtn=document.getElementById('darkModeToggleSetting');
+  const dmBtn2=document.getElementById('darkModeToggle');
+  const dmLabel={system:'🌓',light:'☀️',dark:'🌙'}[feats.darkMode||'system'];
+  if(dmBtn)dmBtn.textContent=dmLabel;
+  if(dmBtn2)dmBtn2.textContent=dmLabel;
+  // Notifications
+  const nc=document.getElementById('notifSettingsContainer');
+  if(nc) renderNotifSettings(nc);
+  // Subject icons
+  const sil=document.getElementById('subjectIconsList');
+  if(sil) sil.innerHTML=(state.subjects||[]).map(s=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);">
+      <span style="font-size:1.2rem;width:32px;text-align:center;cursor:pointer;" onclick="pickSubjectIcon('${s.id}')" title="Icon ändern">${state.subjectIcons?.[s.id]||'📖'}</span>
+      <span style="font-weight:600;color:${s.color}">${esc(s.name)}</span>
+      <button class="btn btn-outline btn-sm" onclick="pickSubjectIcon('${s.id}')">Ändern</button>
+    </div>`).join('');
   renderHomeSectionManager();
   renderSubjectList();
   renderMaterialsList();
@@ -2570,6 +2840,268 @@ function backupLocalFile(){
 
 
 
+
+
+// ── NOTIFICATIONS ──
+async function requestNotifPermission(){
+  if(!('Notification' in window)){toast('⚠️ Browser unterstützt keine Benachrichtigungen');return false;}
+  if(Notification.permission==='granted') return true;
+  const p=await Notification.requestPermission();
+  return p==='granted';
+}
+function scheduleNotifications(){
+  if(!state.features?.notifications) return;
+  // Clear existing
+  if(window._notifTimers) window._notifTimers.forEach(t=>clearTimeout(t));
+  window._notifTimers=[];
+  if(Notification.permission!=='granted') return;
+  const cfg=state.notifConfig||{};
+  const now=new Date();
+  function msUntil(timeStr){
+    const [h,m]=(timeStr||'19:00').split(':').map(Number);
+    const t=new Date();t.setHours(h,m,0,0);
+    if(t<=now) t.setDate(t.getDate()+1);
+    return t-now;
+  }
+  // Evening reminder
+  if(cfg.homeworkEvening!==false){
+    window._notifTimers.push(setTimeout(()=>{
+      const todayStr=formatDate(new Date());
+      const tomorrowStr=formatDate(new Date(Date.now()+86400000));
+      const due=state.homework.filter(h=>!h.done&&(h.due===todayStr||h.due===tomorrowStr));
+      if(due.length){
+        new Notification('📚 School-Planer',{body:`Du hast ${due.length} Hausaufgabe${due.length>1?'n':''} fällig!`,icon:'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22><text y=%2226%22 font-size=%2228%22>📚</text></svg>'});
+      }
+    }, msUntil(cfg.eveningTime||'19:00')));
+  }
+  // Morning pack reminder
+  if(cfg.packReminder!==false){
+    window._notifTimers.push(setTimeout(()=>{
+      const today=new Date().getDay();
+      if(today>=1&&today<=5){
+        new Notification('🎒 School-Planer',{body:'Hast du alles eingepackt für die Schule?'});
+      }
+    }, msUntil(cfg.morningTime||'07:30')));
+  }
+}
+function renderNotifSettings(container){
+  const cfg=state.notifConfig||{};
+  const on=state.features?.notifications!==false;
+  const items=[
+    {key:'homeworkEvening',label:`📚 Abend-Erinnerung (${cfg.eveningTime||'19:00'}) — Hausaufgaben fällig`},
+    {key:'packReminder',label:`🎒 Morgen-Erinnerung (${cfg.morningTime||'07:30'}) — Einpacken nicht vergessen`},
+  ];
+  container.innerHTML=`
+    <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--surface2);border-radius:var(--radius-sm);border:1.5px solid var(--border);margin-bottom:10px;cursor:pointer;" onclick="toggleFeature('notifications')">
+      <div class="hs-toggle ${on?'on':'off'}" style="flex-shrink:0;pointer-events:none;"></div>
+      <div>
+        <div style="font-weight:700;font-size:0.9rem;">🔔 Benachrichtigungen</div>
+        <div style="font-size:0.75rem;color:var(--text-muted);">Alle Erinnerungen ein/ausschalten</div>
+      </div>
+    </div>
+    ${on?`
+    <div style="padding:10px 14px;background:var(--surface2);border-radius:var(--radius-sm);border:1.5px solid var(--border);margin-bottom:10px;">
+      <div style="font-size:0.8rem;font-weight:700;margin-bottom:8px;">Einzelne Erinnerungen:</div>
+      ${items.map(item=>`
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);">
+          <div class="hs-toggle ${cfg[item.key]!==false?'on':'off'}" onclick="toggleNotif('${item.key}')" style="flex-shrink:0;cursor:pointer;"></div>
+          <div style="font-size:0.82rem;">${item.label}</div>
+        </div>`).join('')}
+      <div style="margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div><label>⏰ Abend-Zeit</label><input type="time" value="${cfg.eveningTime||'19:00'}" onchange="updateNotifTime('eveningTime',this.value)" style="width:100%;padding:8px;border:1.5px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font-size:0.9rem;"></div>
+        <div><label>⏰ Morgen-Zeit</label><input type="time" value="${cfg.morningTime||'07:30'}" onchange="updateNotifTime('morningTime',this.value)" style="width:100%;padding:8px;border:1.5px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font-size:0.9rem;"></div>
+      </div>
+      <button class="btn btn-outline btn-sm" style="margin-top:10px;width:100%;" onclick="activateNotifications()">🔔 Browser-Erlaubnis anfordern</button>
+    </div>`:''}
+  `;
+}
+function toggleNotif(key){
+  if(!state.notifConfig) state.notifConfig={};
+  state.notifConfig[key]=state.notifConfig[key]===false?true:false;
+  saveState();scheduleNotifications();
+  const el=document.getElementById('notifSettingsContainer');
+  if(el) renderNotifSettings(el);
+}
+function updateNotifTime(key,val){
+  if(!state.notifConfig) state.notifConfig={};
+  state.notifConfig[key]=val;
+  saveState();scheduleNotifications();
+}
+async function activateNotifications(){
+  const ok=await requestNotifPermission();
+  if(ok){scheduleNotifications();toast('🔔 Benachrichtigungen aktiviert!');}
+  else{toast('❌ Erlaubnis verweigert — bitte in Browser-Einstellungen aktivieren');}
+}
+
+
+// ── GRADES & LEARNING GOALS ──
+function getGradeAvg(subjectId){
+  const g=state.grades?.[subjectId]||[];
+  if(!g.length) return null;
+  const total=g.reduce((s,e)=>s+(e.value*(e.weight||1)),0);
+  const wt=g.reduce((s,e)=>s+(e.weight||1),0);
+  return Math.round((total/wt)*10)/10;
+}
+function renderGradesPage(){
+  const container=document.getElementById('gradesContent');
+  if(!container) return;
+  if(!state.features?.grades){container.innerHTML='<p style="color:var(--text-muted);text-align:center;padding:20px">Noten sind in den Einstellungen deaktiviert.</p>';return;}
+  const subjs=state.subjects||[];
+  container.innerHTML=subjs.map(s=>{
+    const grades=state.grades?.[s.id]||[];
+    const avg=getGradeAvg(s.id);
+    const goal=state.gradeGoals?.[s.id];
+    const diff=avg&&goal?Math.round((avg-goal)*10)/10:null;
+    return`<div class="card" style="border-left:4px solid ${s.color};margin-bottom:12px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+        <span style="font-size:1.4rem;">${state.subjectIcons?.[s.id]||'📖'}</span>
+        <div style="flex:1;">
+          <div style="font-weight:700;font-size:0.95rem;color:${s.color}">${esc(s.name)}</div>
+          <div style="font-size:0.75rem;color:var(--text-muted);">${grades.length} Note${grades.length!==1?'n':''}</div>
+        </div>
+        <div style="text-align:right;">
+          ${avg!==null?`<div style="font-size:1.6rem;font-weight:900;color:${avg>=(goal||4)?'var(--accent)':'var(--danger)'}">${avg}</div>`:'<div style="font-size:0.85rem;color:var(--text-muted);">–</div>'}
+          ${goal?`<div style="font-size:0.72rem;color:var(--text-muted);">Ziel: ${goal}${diff!==null?(diff>=0?' ✅':' '+diff+''):''}</div>`:''}
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
+        ${grades.map(g=>`<span style="background:${s.color}22;color:${s.color};padding:3px 10px;border-radius:99px;font-size:0.8rem;font-weight:700;">${g.value}${g.label?` (${esc(g.label)})`:''}</span>`).join('')}
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-outline btn-sm" onclick="openAddGrade('${s.id}')">+ Note</button>
+        <button class="btn btn-outline btn-sm" onclick="openSetGoal('${s.id}')">🎯 Ziel: ${goal||'–'}</button>
+      </div>
+    </div>`;
+  }).join('')||'<p style="color:var(--text-muted);text-align:center;">Keine Fächer definiert.</p>';
+}
+function openAddGrade(subjectId){
+  const s=getSubjectById(subjectId);if(!s)return;
+  const val=prompt(`Note für ${s.name} (1-6):`);
+  if(!val||isNaN(parseFloat(val)))return;
+  const label=prompt('Bezeichnung (optional, z.B. "Mathe-Test"):','');
+  if(!state.grades) state.grades={};
+  if(!state.grades[subjectId]) state.grades[subjectId]=[];
+  state.grades[subjectId].push({value:parseFloat(val),date:formatDate(new Date()),label:label||'',weight:1});
+  saveState();renderGradesPage();
+}
+function openSetGoal(subjectId){
+  const s=getSubjectById(subjectId);if(!s)return;
+  const cur=state.gradeGoals?.[subjectId]||'';
+  const val=prompt(`Ziel-Note für ${s.name}:`,cur);
+  if(val===null)return;
+  if(!state.gradeGoals) state.gradeGoals={};
+  state.gradeGoals[subjectId]=parseFloat(val)||null;
+  saveState();renderGradesPage();
+}
+
+
+// ── POMODORO TIMER ──
+let _pomoState={active:false,hwId:null,startTime:null,duration:25*60,breakDuration:5*60,isBreak:false,timer:null};
+
+function startPomodoro(hwId){
+  if(!state.features?.pomodoro) return;
+  // Show pomodoro modal
+  const hw=state.homework.find(h=>h.id===hwId);
+  if(!hw) return;
+  document.getElementById('pomoHwTitle').textContent=esc(hw.desc);
+  _pomoState={active:true,hwId,startTime:Date.now(),duration:25*60,breakDuration:5*60,isBreak:false,timer:null};
+  document.getElementById('pomoModal').classList.add('open');
+  runPomodoroTick();
+}
+function runPomodoroTick(){
+  const el=document.getElementById('pomoTimeDisplay');
+  const ring=document.getElementById('pomoRingFill');
+  if(!el||!_pomoState.active){clearInterval(_pomoState.timer);return;}
+  const total=_pomoState.isBreak?_pomoState.breakDuration:_pomoState.duration;
+  const elapsed=Math.floor((Date.now()-_pomoState.startTime)/1000);
+  const remaining=Math.max(0,total-elapsed);
+  const m=String(Math.floor(remaining/60)).padStart(2,'0');
+  const s=String(remaining%60).padStart(2,'0');
+  el.textContent=`${m}:${s}`;
+  // Ring progress
+  const pct=1-(remaining/total);
+  if(ring){
+    const circumference=2*Math.PI*62;
+    ring.style.strokeDasharray=circumference;
+    ring.style.strokeDashoffset=circumference*(1-pct);
+  }
+  if(remaining===0){
+    clearInterval(_pomoState.timer);
+    if(!_pomoState.isBreak){
+      // Count pomodoro
+      if(!state.pomodoroLog) state.pomodoroLog={};
+      state.pomodoroLog[_pomoState.hwId]=(state.pomodoroLog[_pomoState.hwId]||0)+1;
+      saveState();
+      new Notification('⏱️ Pomodoro fertig!',{body:'25 Min geschafft! 5 Min Pause.'});
+      _pomoState.isBreak=true;
+      _pomoState.startTime=Date.now();
+      document.getElementById('pomoPhaseLabel').textContent='☕ Pause';
+    }else{
+      new Notification('☕ Pause vorbei!',{body:'Bereit für die nächste Runde?'});
+      stopPomodoro();
+    }
+    _pomoState.timer=setInterval(runPomodoroTick,1000);
+    return;
+  }
+  if(!_pomoState.timer) _pomoState.timer=setInterval(runPomodoroTick,1000);
+}
+function stopPomodoro(){
+  clearInterval(_pomoState.timer);
+  _pomoState.active=false;
+  document.getElementById('pomoModal')?.classList.remove('open');
+}
+
+
+// ── CALENDAR EXPORT ──
+function exportCalendar(){
+  if(!state.features?.calExport){toast('Kalender-Export ist deaktiviert');return;}
+  const lines=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//School-Planer//DE'];
+  (state.homework||[]).filter(h=>h.due).forEach(h=>{
+    const subj=getSubjectById(h.subjectId);
+    const dateStr=h.due.replace(/-/g,'');
+    const uid=`hw-${h.id}@school-planer`;
+    lines.push('BEGIN:VEVENT');
+    lines.push(`UID:${uid}`);
+    lines.push(`DTSTART;VALUE=DATE:${dateStr}`);
+    lines.push(`DTEND;VALUE=DATE:${dateStr}`);
+    lines.push(`SUMMARY:${h.type==='exam'?'📝 Prüfung: ':'📖 '}${subj?subj.name+': ':''}${h.desc}`);
+    lines.push(`CATEGORIES:${h.type==='exam'?'EXAM':'HOMEWORK'}`);
+    lines.push('END:VEVENT');
+  });
+  lines.push('END:VCALENDAR');
+  const blob=new Blob([lines.join('\r\n')],{type:'text/calendar;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='school-planer-hausaufgaben.ics';
+  a.click();
+  toast('📅 Kalender exportiert!');
+}
+
+
+// ── FEATURE TOGGLES ──
+function toggleFeature(key){
+  if(!state.features) state.features={};
+  state.features[key]=!state.features[key];
+  saveState();
+  if(key==='notifications') scheduleNotifications();
+  renderEinstellungen();
+  toast(state.features[key]?'✅ Aktiviert':'⭕ Deaktiviert');
+}
+
+
+function pickSubjectIcon(subjectId){
+  const icons=['📖','✏️','🔢','➕','🔬','⚗️','🌍','🌿','🎨','🎵','🏃','⚽','💻','📐','📏','🗣️','✝️','🕌','🏛️','📜','💰','🌊','🌡️','🔭','🎭','📝','🖊️','🔤','🔠'];
+  const cur=state.subjectIcons?.[subjectId]||'📖';
+  const chosen=prompt(`Icon für dieses Fach wählen:
+${icons.join(' ')}
+
+Aktuell: ${cur}
+BeliebigesEmoji eintippen:`,cur);
+  if(!chosen) return;
+  if(!state.subjectIcons) state.subjectIcons={};
+  state.subjectIcons[subjectId]=chosen.trim();
+  saveState();renderEinstellungen();
+}
 
 function saveAddresses(){state.homeAddr=document.getElementById('homeAddr').value.trim();state.schoolAddr=document.getElementById('schoolAddr').value.trim();saveState();toast('📍 Adressen gespeichert!');}
 function saveOevSettings(){
@@ -2706,6 +3238,7 @@ setInterval(()=>{
 },60000);
 loadState();
 applyColors();
+applyDarkMode();
 updateStaticLabels();
 checkGdriveCallback(); // Handle OAuth token returned in URL after Google redirect
 renderHome();
@@ -2714,6 +3247,7 @@ window.addEventListener('resize',()=>{
 });
 // Auto-load from Google Drive if signed in
 if(state.gdriveToken){ gdriveLoad(true).then(()=>updateGdriveUI()); }
+scheduleNotifications();
 setInterval(()=>{if(document.getElementById('page-oev').classList.contains('active'))loadOev();},60000);
 </script>
 </body>
